@@ -1,0 +1,16 @@
+OPC-N2 FirmwareVer=OPC-018.2..............................BD
+OPC-N2 176580907                                            
+Config info:
+GSC,1.000
+LaserDAC,210
+FanDAC,255
+ToFtoSFRfactor,98
+BinNo,Bin0,Bin1,Bin2,Bin3,Bin4,Bin5,Bin6,Bin7,Bin8,Bin9,Bin10,Bin11,Bin12,Bin13,Bin14,Bin15
+Boundary(upper),17,27,41,60,79,123,234,388,575,909,1294,1866,2475,3092,3685,4095
+ParticleVolume(um3),0.051,0.151,0.401,0.894,1.646,3.209,8.530,22.449,47.713,99.541,199.532,381.703,696.910,1150.347,1767.146,2460.612
+ParticleDensity(g/ml),1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050,1.050
+SampleVolumeWeighting,4.500,3.000,2.000,0.500,0.300,0.250,0.250,0.250,0.350,0.450,0.500,0.800,1.000,1.000,1.000,1.000
+DataRequestInterval(s),1.398
+MaxDataArraysPerFile,61798
+Data:
+Bin0,Bin1,Bin2,Bin3,Bin4,Bin5,Bin6,Bin7,Bin8,Bin9,Bin10,Bin11,Bin12,Bin13,Bin14,Bin15,MToFBin1(us/3),MToFBin3,MToFBin5,MToFBin7,SFR(ml/s),SamplingPeriod(s),PM1(ug/m3),PM2.5,PM10

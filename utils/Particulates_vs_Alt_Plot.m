@@ -5,14 +5,15 @@
 % Written by Garrett Ailts
 clear all
 close all
-flightNum = 'GL128';
-dustFile = 'OPC2_005.CSV';
-flightLog = 'LOG01.CSV';
+flightNum = 'GL131';
+dustFile = 'OPC2_001.CSV';
+flightLog = 'FLOG11.CSV';
 opc_tOffset = 60;
 n=2;
-fPath = strcat('../data/',flightNum);
-addpath(genpath('../figs/'));
-addpath(genpath(fPath));
+fPath1 = strcat('../data/',flightNum,'/');
+fPath2 = strcat('../figs/',flightNum,'/');
+addpath(genpath(fPath2));
+addpath(genpath(fPath1));
 %% Import Data
 [Bin0,Bin1,Bin2,Bin3,Bin4,Bin5,Bin6,Bin7,Bin8,Bin9,Bin10,Bin11,Bin12,Bin13,Bin14,Bin15] = import_Dust_Data(dustFile, 17, inf);
 dust_Array=[Bin0 Bin1 Bin2 Bin3 Bin4 Bin5 Bin6 Bin7 Bin8 Bin9 Bin10 Bin11 Bin12 Bin13 Bin14 Bin15];
@@ -35,7 +36,7 @@ parfor s=1:1:16
 dust = dust_Array(:,s);
 %% Interpolate Alt Data
 Alt_normalized=interp1(t_Altd,Alt,t_sensor);
-Alt_normalized = Alt_normalized';
+Alt_normalized = (Alt_normalized')/1000;
 %% Split Datasets Into Ascent and Descent
 [~,max_index]=max(Alt_normalized);
 Alt_ascent=Alt_normalized(1:max_index);
@@ -48,7 +49,7 @@ dust_descent=dust(max_index+1:end);
 subplot(1,2,1);
 scatter(dust_ascent,Alt_ascent,'Blue');
 hold on;
-ylabel("Altitude (ft)");
+ylabel("Altitude (kft)");
 xlabel("Particulate Counts");
 a=" vs Altitude (Ascent)";
 titl = sprintf('Bin%d',s-1);
@@ -57,7 +58,7 @@ title(Title);
 hold off;
 subplot(1,2,2);
 scatter(dust_descent,Alt_descent,'Red');
-ylabel("Altitude (ft)");
+ylabel("Altitude (kft)");
 xlabel("Particulate Counts");
 a=" vs Altitude (Descent)";
 titl = sprintf('Bin%d',s-1);
@@ -65,7 +66,7 @@ Title=strcat(titl,a);
 title(Title);
 %% Save figure
 fig=sprintf('_Particulates_vs_Altitude%d.png',s-1);
-strFigure=strcat('../figs/',flightNum,fig);
+strFigure=strcat(fPath2,flightNum,fig);
 saveas(gcf, strFigure); %automatically save a figure each time the script is run
 end
 
