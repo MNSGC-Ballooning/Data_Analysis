@@ -16,9 +16,9 @@ addpath(genpath(fPath2));
 addpath(genpath(fPath1));
 %% Parameters
 mTOft=3.2808399;
-flowRate=220/60; %cm^3/s
+samplePeriod=1.389;
 %% Import Data
-[Bin0,Bin1,Bin2,Bin3,Bin4,Bin5,Bin6,Bin7,Bin8,Bin9,Bin10,Bin11,Bin12,Bin13,Bin14,Bin15] = import_Dust_Data(dustFile, 17, inf);
+[Bin0,Bin1,Bin2,Bin3,Bin4,Bin5,Bin6,Bin7,Bin8,Bin9,Bin10,Bin11,Bin12,Bin13,Bin14,Bin15,SFR,~] = import_Dust_Data(dustFile, 17, inf);
 dust_Array=[Bin0 Bin1 Bin2 Bin3 Bin4 Bin5 Bin6 Bin7 Bin8 Bin9 Bin10 Bin11 Bin12 Bin13 Bin14 Bin15];
 size=[0.38 0.54 0.78 1.0 1.3 1.6 2.1 3.0 4.0 5.0 6.5 8.0 10.0 12.0 14.0 16.0 25];
 Alt = import_HASP_Alt(flightLog, 1, inf);
@@ -26,7 +26,7 @@ Alt=(Alt(opc_tOffset:end).*mTOft)/1000;
 
 
 %% Obtain OPC Time Vector
-t_sensor = 1.4.*(linspace(0,length(Bin0),length(Bin0)));
+t_sensor = samplePeriod.*(linspace(0,length(Bin0),length(Bin0)));
 t_alt=linspace(0,length(Alt),length(Alt));
 for s=1:1:16
 %% Define Dust Dataset
@@ -57,9 +57,12 @@ sets={idx1, idx2, idx3, idx4, idx5, idx6, idx7, idx8, idx9, idx10, idx11, idx12,
 for i=1:17
     array=sets{i};
     for j=1:length(array)
-        conc(j)=dust(array(j));
+        counts(j)=dust(array(j));
+        flowrate(j)=SFR(array(j));
     end
-    dustSets(i)=((sum(conc)/length(conc))/flowRate)/(log10(sizeRange(2))-log10(sizeRange(1)));
+    avgCounts=sum(counts)/length(counts);
+    avgSFR=sum(flowrate)/length(flowrate); %Sample flow rate in cm^3/s
+    dustSets(i)=(avgCounts/avgSFR)/(log10(sizeRange(2))-log10(sizeRange(1)));
 end
 dusty(:,s)=dustSets';
 cdAlt=linspace(81.25,121.25,17);
