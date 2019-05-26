@@ -1,0 +1,138 @@
+% Balloon Trajectory Plotter
+% Garrett Ailts
+
+
+clear vars, close all
+%% User Defined Parameters
+flightNum = 'GL138'; % flight number
+flightLog = 'FLOG07.CSV'; % flight log filename
+payloadV = 'DL'; % payload version
+
+%% Constants
+opc_tOffset = 60; % OPC-N3 boot up time in seconds
+
+%% Add Necessary Folders to Path
+fPath1 = strcat('../data/',flightNum,'/');
+fPath2 = strcat('../figs/',flightNum,'/');
+addpath(genpath(fPath2));
+addpath(genpath(fPath1));
+
+%% Import Data
+if strcmp(payloadV,'rev2')==1
+    [t,~,~,Alt,~,~,Fix,~,~,~,~,~,~,~,~,~,~] = import_FlightLog(flightLog, 2, inf);
+elseif strcmp(payloadV,'DL')==1
+    [t,~,~,Alt,~,~,~,Fix,~,~,~,~,~,~,~,~] = importDataLogger(flightLog, 2, inf);
+end
+
+%% Convert H:M:S to Seconds
+t_sec = zeros(length(t),1);
+for i=1:1:length(Alt)
+    if Fix(i)=='No Fix' %#ok<BDSCA>
+        Alt(i)=NaN;
+    end
+    [Y, M, D, H, MN, S] = datevec(t(i));
+    t_sec(i)=H*3600+MN*60+S;
+end
+
+%initAlt = Alt(find(isnan(Alt)==false,'first'));
+
+%% Fill in Missing Altitude Values Using Linear Interpoltation
+Alt=fillmissing(Alt,'linear');
+
+%% Get Rates
+dhdt = diff(Alt)./diff(t_sec);
+d2hdt2 = diff(dhdt)./diff(t_sec(1:end-1));
+
+dhStart = find(dhdt>(200/60),1,'first');
+dhFinal = find(dhdt<(200/60),1,'last');
+
+%% Determine Critical Points of Flight
+[maxAlt,max_idx]=max(Alt);
+[~, crp] = maxk(d2hdt2,2);
+critp = sort(crp);
+    
+%% Split Flight into Regimes
+if strcmp(payloadV,'rev2')
+    Alt_ascent = Alt(1:max_idx);
+    t_ascent = t_sec(1:max_idx);
+    dhdtA = mean(dhdt(dhStart:critp(2)-2));
+    Alt_float = Alt(max_idx+1:critp(1));
+    t_float = t_sec(max_idx+1:critp(1));
+    dhdtF = mean(dhdt(critp(2)+2:crtip(1)-2));
+    Alt_descent = Alt(critp(1)+1:end);
+    t_descent = t_sec(critp(1)+1:end);
+    twentyKidx = find(Alt_descent<20000,'first');
+    dhdtD = mean(dhdt(length(t_ascent)+twentyKidx,dhFinal));
+elseif strcmp(payloadV,'DL')==1
+    Alt_ascent = Alt(1:max_idx);
+    t_ascent = t_sec(1:max_idx);
+    dhdtA = mean(dhdt(dhStart:critp(1)-2));
+    Alt_descent = Alt(max_idx+1:end);
+    t_descent = t_sec(max_idx+1:end);
+    dhdtD = mean(dhdt(critp(1)+2:dhFinal));
+    
+else
+    error('Payload version specified does not exist');
+end
+
+%% Determine Locations of Text on Plot
+x_Arate = floor(t_sec(floor(length(t_ascent)/2))/60);
+y_Arate = floor(Alt(floor(length(Alt_ascent)/2))/1000);
+if strcmp(payloadV,'rev2')==1
+    x_Frate = floor(t_sec(floor(length(t_float)/2)+ ...
+              length(t_ascent))/60);
+    y_Frate = floor(Alt(floor(length(Alt_float)/2)+ ...
+              length(Alt_ascent))/1000);
+    x_Drate = floor(t_sec(floor(length(t_descent)/2)+ ...
+              length(t_ascent)+length(t_float))/60);
+    y_Drate = floor(Alt(floor(length(Alt_descent)/2)+ ...
+              length(Alt_ascent)+length(Alt_float))/1000);
+elseif strcmp(payloadV,'DL')==1
+    x_Drate = floor(t_sec(floor(length(t_descent)/2)+ ...
+              length(t_ascent))/60);
+    y_Drate = floor(Alt(floor(length(Alt_descent)/4)+ ...
+              length(Alt_ascent))/1000);
+    
+end
+
+%% Plot Trajectory Data
+figure(1)
+subplot(1,2,1);
+plot(t_sec/60,Alt/1000), xlabel("Time (min)"), 
+ylabel("Altitude (kft)"), title("Altitude vs Time");
+hdotA=sprintf('Ascent Rate = %f ft/min', dhdtA*60);
+hdotD=sprintf('Descent Rate = %f ft/min', dhdtD*60);
+maxh=sprintf('Max Alt = %f ft', maxAlt);
+text(x_Arate,y_Arate,hdotA,'HorizontalAlignment','Right');
+text(x_Drate,y_Drate,hdotD,'HorizontalAlignment','Right');
+text(t_sec(max_idx)/60,floor(maxAlt),maxh,'HorizontalAlignment','Left');
+subplot(1,2,2);
+plot(t_sec(1:end-1)/60,dhdt*60), xlabel("Time (min)"),
+ylabel("Ascent Rate (ft/min)"), title("Ascent Rate vs Time");
+set(gca, 'FontSize', 12); %make font larger
+strFigure=strcat(fPath2,flightNum,'_Trajectory.png');
+saveas(gcf, strFigure); %automatically save a figure each time the script is run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
